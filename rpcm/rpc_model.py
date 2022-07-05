@@ -12,7 +12,12 @@ import rasterio
 from rpcm import geo
 from rpcm.rpc_file_readers import read_rpc_file
 
-
+try:
+    import os
+    max_num_iterations_localization = int(os.environ['RPCMMAXITER']) if os.environ['RPCMMAXITER'] else 500
+except:
+    max_num_iterations_localization = 500
+    
 class MaxLocalizationIterationsError(Exception):
     """
     Custom rpcm Exception.
@@ -206,7 +211,7 @@ class RPCModel:
 
         Raises:
             MaxLocalizationIterationsError: if the while loop exceeds the max
-                number of iterations, which is set to 100.
+                number of iterations, which is set to max_num_iterations_localization.
         """
         # target point: Xf (f for final)
         Xf = np.vstack([col, row]).T
@@ -227,7 +232,7 @@ class RPCModel:
         n = 0
         while not np.all((x0 - col) ** 2 + (y0 - row) ** 2 < 1e-18):
 
-            if n > 100:
+            if n > max_num_iterations_localization:
                 raise MaxLocalizationIterationsError("Max localization iterations (100) exceeded")
 
             X0 = np.vstack([x0, y0]).T
